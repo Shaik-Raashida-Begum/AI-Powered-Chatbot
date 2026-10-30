@@ -1,0 +1,25 @@
+
+# Secret API keys
+.env
+.env.*
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# SQLite database
+chatbot.db
+*.db
+
+# Test files
+.pytest_cache/
+.coverage
+
+# Editor and operating system files
+.vscode/
+.DS_Store
+Thumbs.db

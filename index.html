@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI-Powered Chatbot</title>
+
+    <!-- Markdown formatting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Sanitize generated HTML for safer display -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2ff;
+            margin: 0;
+            padding: 30px 16px;
+            color: #1f2937;
+        }
+
+        .chat-container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4338ca;
+            margin: 10px 0 25px;
+            font-size: clamp(24px, 4vw, 38px);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-top: -15px;
+            margin-bottom: 25px;
+        }
+
+        #messages {
+            height: 430px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            padding: 18px;
+            margin-bottom: 18px;
+            border-radius: 14px;
+            background: #ffffff;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .message.user {
+            background: #dbeafe;
+            text-align: right;
+            margin-left: 10%;
+        }
+
+        .message.bot {
+            background: #dcfce7;
+            margin-right: 4%;
+        }
+
+        /* Markdown formatting inside AI responses */
+        .message.bot p {
+            margin: 6px 0 12px;
+        }
+
+        .message.bot h1,
+        .message.bot h2,
+        .message.bot h3,
+        .message.bot h4 {
+            text-align: left;
+            color: #3730a3;
+            font-size: 1.1em;
+            margin: 16px 0 8px;
+        }
+
+        .message.bot ul,
+        .message.bot ol {
+            padding-left: 25px;
+            margin: 8px 0 14px;
+        }
+
+        .message.bot li {
+            margin: 5px 0;
+        }
+
+        .message.bot pre {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .message.bot code {
+            background: #f3f4f6;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+        }
+
+        .message.bot pre code {
+            padding: 0;
+            background: transparent;
+        }
+
+        .message.bot blockquote {
+            border-left: 4px solid #818cf8;
+            margin: 10px 0;
+            padding: 5px 12px;
+            color: #4b5563;
+        }
+
+        .message.bot a {
+            color: #4338ca;
+            overflow-wrap: anywhere;
+        }
+
+        .status {
+            min-height: 22px;
+            margin: 0 0 10px;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        #userInput {
+            flex: 1;
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        #userInput:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #4338ca;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #3730a3;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .new-chat-button {
+            display: block;
+            margin: 0 0 15px auto;
+            padding: 9px 14px;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-size: 14px;
+        }
+
+        .new-chat-button:hover:not(:disabled) {
+            background: #c7d2fe;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .chat-container {
+                padding: 15px;
+                border-radius: 14px;
+            }
+
+            #messages {
+                height: 55vh;
+                min-height: 280px;
+                padding: 10px;
+            }
+
+            .input-area {
+                gap: 7px;
+            }
+
+            #userInput {
+                padding: 12px 10px;
+                font-size: 14px;
+            }
+
+            button {
+                padding: 12px;
+            }
+
+            .message.user {
+                margin-left: 3%;
+            }
+
+            .message.bot {
+                margin-right: 2%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="chat-container">
+
+        <h1>🤖 AI-Powered Chatbot</h1>
+
+        <p class="subtitle">
+            Ask questions and learn something new!
+        </p>
+
+        <button
+            type="button"
+            class="new-chat-button"
+            id="newChatButton"
+        >
+            + New Chat
+        </button>
+
+        <section
+            id="messages"
+            aria-label="Chat conversation"
+            aria-live="polite"
+        >
+            <div class="message bot">
+                Hello! 👋 Ask me a question to get started.
+            </div>
+        </section>
+
+        <p id="status" class="status" role="status"></p>
+
+        <form id="chatForm" class="input-area">
+            <input
+                id="userInput"
+                type="text"
+                placeholder="Type your message..."
+                autocomplete="off"
+                aria-label="Your message"
+                maxlength="5000"
+                required
+            >
+
+            <button id="sendButton" type="submit">
+                Send
+            </button>
+        </form>
+
+        <div class="footer">
+            AI-Powered Chatbot | Built with Python, Flask and Gemini
+        </div>
+
+    </main>
+
+    <script>
+        const messages = document.getElementById("messages");
+        const input = document.getElementById("userInput");
+        const sendButton = document.getElementById("sendButton");
+        const newChatButton = document.getElementById("newChatButton");
+        const chatForm = document.getElementById("chatForm");
+        const statusText = document.getElementById("status");
+
+        let isWaiting = false;
+        let requestController = null;
+
+        // Safely format AI responses as Markdown.
+        function formatBotResponse(text) {
+            if (typeof marked === "undefined") {
+                return null;
+            }
+
+            const html = marked.parse(text);
+
+            if (typeof DOMPurify === "undefined") {
+                return null;
+            }
+
+            return DOMPurify.sanitize(html);
+        }
+
+        // Add a message to the conversation.
+        function addMessage(text, type) {
+            const item = document.createElement("div");
+            item.className = "message " + type;
+
+            if (type === "bot") {
+                const formatted = formatBotResponse(text);
+
+                if (formatted !== null) {
+                    item.innerHTML = formatted;
+                } else {
+                    // Safe fallback if a library does not load.
+                    item.textContent = text;
+                }
+            } else {
+                // Never interpret user input as HTML.
+                item.textContent = text;
+            }
+
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+
+            return item;
+        }
+
+        // Update the interface while the AI is responding.
+        function setWaiting(waiting) {
+            isWaiting = waiting;
+            sendButton.disabled = waiting;
+            input.disabled = waiting;
+            newChatButton.disabled = waiting;
+
+            sendButton.textContent = waiting ? "Thinking..." : "Send";
+            statusText.textContent = waiting
+                ? "The AI is preparing your answer..."
+                : "";
+        }
+
+        // Send a message to the Flask backend.
+        async function sendMessage(event) {
+            event.preventDefault();
+
+            const message = input.value.trim();
+
+            if (!message || isWaiting) {
+                return;
+            }
+
+            addMessage("You: " + message, "user");
+            input.value = "";
+
+            const loadingMessage = addMessage(
+                "Thinking...",
+                "bot"
+            );
+
+            setWaiting(true);
+            requestController = new AbortController();
+
+            // Prevent a request from hanging indefinitely in the browser.
+            const timeoutId = setTimeout(() => {
+                requestController.abort();
+            }, 90000);
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message: message }),
+                    signal: requestController.signal
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.reply || "The server could not process your request."
+                    );
+                }
+
+                const formatted = formatBotResponse(data.reply || "");
+
+                if (formatted !== null) {
+                    loadingMessage.innerHTML = formatted;
+                } else {
+                    loadingMessage.textContent =
+                        data.reply || "No answer was returned.";
+                }
+
+                statusText.textContent = "Response received.";
+
+            } catch (error) {
+                if (error.name === "AbortError") {
+                    loadingMessage.textContent =
+                        "The request took too long. Please try again.";
+                } else {
+                    loadingMessage.textContent =
+                        "Sorry, " + error.message;
+                }
+
+                statusText.textContent = "Please try again.";
+
+                console.error("Chat request failed:", error);
+
+            } finally {
+                clearTimeout(timeoutId);
+                requestController = null;
+                setWaiting(false);
+                input.focus();
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        // Start a new conversation by clearing visible messages.
+        
+        async function startNewChat() {
+            if (isWaiting) {
+                statusText.textContent =
+                    "Please wait for the current response to finish.";
+                return;
+            }
+
+            newChatButton.disabled = true;
+            statusText.textContent = "Clearing conversation...";
+
+            try {
+                const response = await fetch("/history", {
+                    method: "DELETE"
+                });
+
+                if (!response.ok) {
+                    throw new Error("Could not clear saved history.");
+                }
+
+                messages.replaceChildren();
+
+                const welcome = document.createElement("div");
+                welcome.className = "message bot";
+                welcome.textContent =
+                    "Hello! 👋 Welcome back. What would you like to ask?";
+
+                messages.appendChild(welcome);
+                statusText.textContent = "Conversation history cleared.";
+
+            } catch (error) {
+                statusText.textContent = error.message;
+
+            } finally {
+                newChatButton.disabled = false;
+                input.focus();
+            }
+        }
+
+
+        async function loadHistory() {
+            try {
+                const response = await fetch("/history");
+
+                if (!response.ok) {
+                    throw new Error("Could not load conversation history.");
+                }
+
+                const data = await response.json();
+
+                if (data.messages.length > 0) {
+                    messages.replaceChildren();
+
+                    for (const message of data.messages) {
+                        const prefix =
+                            message.role === "user" ? "You: " : "";
+
+                        addMessage(
+                            prefix + message.content,
+                            message.role === "user" ? "user" : "bot"
+                        );
+                    }
+
+                    messages.scrollTop = messages.scrollHeight;
+                }
+            } catch (error) {
+                console.error("History loading failed:", error);
+            }
+        }
+
+        loadHistory();
+
+        chatForm.addEventListener("submit", sendMessage);
+        newChatButton.addEventListener("click", startNewChat);
+
+        input.focus();
+    </script>
+</body>
+</html>
